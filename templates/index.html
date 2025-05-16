@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain Tumor Classifier</title>
+    <title>Mô hình phân loại khối u não</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .preview-image {
@@ -17,33 +17,48 @@
             border-radius: 5px;
             background-color: #f8f9fa;
         }
+        .custom-file-upload {
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #e9ecef;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #file-name {
+            margin-left: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Brain Tumor Classifier</h1>
-        
+        <h1 class="text-center mb-4">Mô hình phân loại khối u não</h1>
+
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
                         <form id="uploadForm" enctype="multipart/form-data">
                             <div class="mb-3">
-                                <label for="imageFile" class="form-label">Select Brain MRI Image</label>
-                                <input type="file" class="form-control" id="imageFile" name="file" accept="image/*" required>
+                                <label class="form-label">Chọn ảnh MRI não</label><br>
+                                <label for="imageFile" class="custom-file-upload">Chọn tệp</label>
+                                <input type="file" id="imageFile" name="file" accept="image/*" style="display: none;" required>
+                                <span id="file-name">Chưa chọn tệp</span>
                             </div>
-                            <button type="submit" class="btn btn-primary">Predict</button>
+                            <button type="submit" class="btn btn-primary">Dự đoán</button>
                         </form>
 
                         <div id="preview" class="text-center" style="display: none;">
-                            <h5>Preview:</h5>
+                            <h5>Ảnh khối u não</h5>
                             <img id="previewImage" class="preview-image">
                         </div>
 
                         <div id="result" class="result-box" style="display: none;">
-                            <h5>Prediction Result:</h5>
-                            <p id="predictionText"></p>
-                            <p id="probabilityText"></p>
+                            <h5>Kết quả dự đoán:</h5>
+                            <div id="cnn-result"></div>
+                            <div id="resnet50-result"></div>
+                            <div id="vgg16-result"></div>
                         </div>
                     </div>
                 </div>
@@ -52,12 +67,16 @@
     </div>
 
     <script>
-        // Preview image before upload
-        document.getElementById('imageFile').addEventListener('change', function(e) {
+        const imageFile = document.getElementById('imageFile');
+        const fileNameDisplay = document.getElementById('file-name');
+
+        imageFile.addEventListener('change', function (e) {
             const file = e.target.files[0];
+            fileNameDisplay.textContent = file ? file.name : 'Chưa chọn tệp';
+
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const preview = document.getElementById('preview');
                     const previewImage = document.getElementById('previewImage');
                     previewImage.src = e.target.result;
@@ -67,12 +86,16 @@
             }
         });
 
-        // Handle form submission
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
-            const formData = new FormData();
+
             const fileField = document.getElementById('imageFile');
+            if (!fileField.files.length) {
+                alert("Vui lòng chọn một tệp.");
+                return;
+            }
+
+            const formData = new FormData();
             formData.append('file', fileField.files[0]);
 
             fetch('/predict', {
@@ -82,23 +105,27 @@
             .then(response => response.json())
             .then(data => {
                 const result = document.getElementById('result');
-                const predictionText = document.getElementById('predictionText');
-                const probabilityText = document.getElementById('probabilityText');
+                const cnnDiv = document.getElementById('cnn-result');
+                const resnetDiv = document.getElementById('resnet50-result');
+                const vggDiv = document.getElementById('vgg16-result');
 
                 if (data.error) {
-                    predictionText.textContent = `Error: ${data.error}`;
+                    cnnDiv.textContent = `Lỗi: ${data.error}`;
+                    resnetDiv.textContent = "";
+                    vggDiv.textContent = "";
                 } else {
-                    predictionText.textContent = `Predicted Class: ${data.class}`;
-                    probabilityText.textContent = `Confidence: ${(data.probability * 100).toFixed(2)}%`;
+                    cnnDiv.innerHTML = `<b>CNN:</b> ${data.cnn.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.cnn.probability * 100).toFixed(2)}%</span>`;
+                    resnetDiv.innerHTML = `<b>ResNet50:</b> ${data.resnet50.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.resnet50.probability * 100).toFixed(2)}%</span>`;
+                    vggDiv.innerHTML = `<b>VGG16:</b> ${data.vgg16.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.vgg16.probability * 100).toFixed(2)}%</span>`;
                 }
-                
+
                 result.style.display = 'block';
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while processing the image.');
+                console.error('Lỗi:', error);
+                alert('Đã xảy ra lỗi trong quá trình xử lý ảnh.');
             });
         });
     </script>
 </body>
-</html> 
+</html>
