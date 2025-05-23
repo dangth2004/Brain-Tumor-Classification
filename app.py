@@ -14,6 +14,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 # Tạo thư mục uploads nếu chưa tồn tại
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+
 # Định nghĩa model CNN (phải giống với model đã train)
 class CNN_Network(nn.Module):
     def __init__(self):
@@ -33,6 +34,7 @@ class CNN_Network(nn.Module):
 
     def forward(self, x):
         return self.network(x)
+
 
 # Khởi tạo device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -109,9 +111,11 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.5], std=[0.5])
 ])
 
+
 @app.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -168,6 +172,8 @@ def predict():
         except Exception as e:
             print(f"Error details: {str(e)}")
             return jsonify({'error': f'Error processing image: {str(e)}'})
+    return None
+
 
 if __name__ == '__main__':
     app.run(debug=True)
