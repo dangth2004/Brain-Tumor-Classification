@@ -6,28 +6,76 @@
     <title>Mô hình phân loại khối u não</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+            background: linear-gradient(120deg, #f0f4f9 0%, #e0e7ef 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+            background: rgba(255,255,255,0.95);
+        }
+        .card-body {
+            padding: 2.5rem 2rem;
+        }
         .preview-image {
             max-width: 300px;
             max-height: 300px;
             margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 2px solid #e3e6ea;
+            background: #fff;
         }
         .result-box {
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
+            padding: 18px 20px;
+            border-radius: 10px;
             background-color: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e3e6ea;
         }
         .custom-file-upload {
             display: inline-block;
-            padding: 6px 12px;
+            padding: 8px 18px;
             cursor: pointer;
-            background-color: #e9ecef;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            background: linear-gradient(90deg, #e9ecef 60%, #f7fafc 100%);
+            border: 1px solid #bfc9d1;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .custom-file-upload:hover {
+            background: linear-gradient(90deg, #dbeafe 60%, #f1f5f9 100%);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         }
         #file-name {
             margin-left: 10px;
             font-style: italic;
+            color: #6c757d;
+        }
+        h1 {
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #2d3a4b;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        h5 {
+            color: #3b4252;
+            font-weight: 600;
+        }
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 1.2rem 0.5rem;
+            }
+            .preview-image {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -36,7 +84,7 @@
         <h1 class="text-center mb-4">Mô hình phân loại khối u não</h1>
 
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
                         <form id="uploadForm" enctype="multipart/form-data">
@@ -46,7 +94,7 @@
                                 <input type="file" id="imageFile" name="file" accept="image/*" style="display: none;" required>
                                 <span id="file-name">Chưa chọn tệp</span>
                             </div>
-                            <button type="submit" class="btn btn-primary">Dự đoán</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">Dự đoán</button>
                         </form>
 
                         <div id="preview" class="text-center" style="display: none;">
@@ -57,6 +105,7 @@
                         <div id="result" class="result-box" style="display: none;">
                             <h5>Kết quả dự đoán:</h5>
                             <div id="cnn-result"></div>
+                            <div id="cnn-lstm-result"></div>
                             <div id="resnet50-result"></div>
                             <div id="vgg16-result"></div>
                         </div>
@@ -106,15 +155,18 @@
             .then(data => {
                 const result = document.getElementById('result');
                 const cnnDiv = document.getElementById('cnn-result');
+                const cnnLstmDiv = document.getElementById('cnn-lstm-result');
                 const resnetDiv = document.getElementById('resnet50-result');
                 const vggDiv = document.getElementById('vgg16-result');
 
                 if (data.error) {
                     cnnDiv.textContent = `Lỗi: ${data.error}`;
+                    cnnLstmDiv.textContent = "";
                     resnetDiv.textContent = "";
                     vggDiv.textContent = "";
                 } else {
                     cnnDiv.innerHTML = `<b>CNN:</b> ${data.cnn.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.cnn.probability * 100).toFixed(2)}%</span>`;
+                    cnnLstmDiv.innerHTML = `<b>CNN + LSTM:</b> ${data.cnn_lstm.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.cnn_lstm.probability * 100).toFixed(2)}%</span>`;
                     resnetDiv.innerHTML = `<b>ResNet50:</b> ${data.resnet50.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.resnet50.probability * 100).toFixed(2)}%</span>`;
                     vggDiv.innerHTML = `<b>VGG16:</b> ${data.vgg16.class} <br> <span style="color:#888;">Điểm tin cậy: ${(data.vgg16.probability * 100).toFixed(2)}%</span>`;
                 }
