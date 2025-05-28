@@ -117,28 +117,36 @@ class VGG16_full(nn.Module):
 # --- Khởi tạo device ---
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Tạo thư mục
+base_dir = os.getcwd()
+base_dir = os.path.join(base_dir, 'pretrain_parameters')
+
 # --- Load trọng số các model ---
 cnn_model = CNN_Network().to(device)
+cnn_model_path = os.path.join(base_dir, 'CNN_Brain_Tumor_para.pth')
 cnn_model.load_state_dict(torch.load(
-    'C:/Users/PC/PycharmProjects/pythonProject/hus/computer_vision/project/pretrain_parameters/CNN_Brain_Tumor_para.pth',
+    cnn_model_path,
     map_location=device))
 cnn_model.eval()
 
 cnn_lstm_model = CNN_LSTM_Classifier().to(device)
+cnn_lstm_model_path = os.path.join(base_dir, 'CNN_LSTM_Brain_Tumor_para.pth')
 cnn_lstm_model.load_state_dict(torch.load(
-    'C:/Users/PC/PycharmProjects/pythonProject/hus/computer_vision/project/pretrain_parameters/CNN_LSTM_Brain_Tumor_para.pth',
+    cnn_lstm_model_path,
     map_location=device))
 cnn_lstm_model.eval()
 
 resnet50_full = ResNet50_full(num_classes=4).to(device)
+resnet50_full_path = os.path.join(base_dir, 'fine_tune', 'ResNet_Full_Brain_Tumor_para.pth')
 resnet50_full.load_state_dict(torch.load(
-    'C:/Users/PC/PycharmProjects/pythonProject/hus/computer_vision/project/pretrain_parameters/fine_tune/ResNet_Full_Brain_Tumor_para.pth',
+    resnet50_full_path,
     map_location=device))
 resnet50_full.eval()
 
 vgg16_full = VGG16_full(num_classes=4, in_channels=1).to(device)
+vgg16_full_path = os.path.join(base_dir, 'fine_tune', 'VGG_Full_Brain_Tumor_para.pth')
 vgg16_full.load_state_dict(torch.load(
-    'C:/Users/PC/PycharmProjects/pythonProject/hus/computer_vision/project/pretrain_parameters/fine_tune/VGG_Full_Brain_Tumor_para.pth',
+    vgg16_full_path,
     map_location=device))
 vgg16_full.eval()
 
